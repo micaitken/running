@@ -1,35 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Mile Time Range Calculator</title>
-  <style>
-    body { font-family: Arial; padding: 20px; max-width: 700px; margin: auto; }
-    input, label, button { margin: 8px 0; display: block; }
-    .mile-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
-    .output { background: #f5f5f5; padding: 12px; border-radius: 5px; margin-top: 15px; white-space: pre-wrap; }
-  </style>
-</head>
-<body>
-
-  <h2>Mile Time Range Calculator</h2>
-
-  <label>Start Time (e.g. 9:10 AM):</label>
-  <input type="text" id="startTime" value="9:10 AM">
-
-  <label>Min Pace (MM:SS):</label>
-  <input type="text" id="paceMin" value="05:30">
-
-  <label>Max Pace (MM:SS):</label>
-  <input type="text" id="paceMax" value="06:10">
-
-  <label>Select Miles:</label>
-  <div class="mile-list" id="mileCheckboxes"></div>
-
-  <button onclick="handleCalculate()">Calculate</button>
-
-  <div class="output" id="output"></div>
-
 <script>
   function parseTime(timeStr) {
     const [min, sec] = timeStr.split(":").map(Number);
@@ -43,6 +11,14 @@
     hours = hours % 12 || 12;
     minutes = minutes.toString().padStart(2, "0");
     return `${hours}:${minutes} ${ampm}`;
+  }
+
+  // New helper to format milliseconds as MM:SS (net race time)
+  function formatDuration(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const min = Math.floor(totalSeconds / 60);
+    const sec = totalSeconds % 60;
+    return `${min}:${sec.toString().padStart(2, "0")}`;
   }
 
   function calculateTimeRanges(startTimeStr, paceMinStr, paceMaxStr, distances) {
@@ -64,8 +40,10 @@
       const maxTime = new Date(startTime.getTime() + paceMax * dist);
       return {
         distance: dist,
-        minTime: formatClockTime(minTime),
-        maxTime: formatClockTime(maxTime)
+        minTimeClock: formatClockTime(minTime),
+        maxTimeClock: formatClockTime(maxTime),
+        minTimeNet: formatDuration(paceMin * dist),
+        maxTimeNet: formatDuration(paceMax * dist)
       };
     });
   }
@@ -81,27 +59,10 @@
     const results = calculateTimeRanges(startTime, paceMin, paceMax, selectedDistances);
 
     let output = "";
-    results.forEach(({ distance, minTime, maxTime }) => {
-      output += `Distance: ${distance} miles\nTime Range: ${minTime} - ${maxTime}\n\n`;
+    results.forEach(({ distance, minTimeClock, maxTimeClock, minTimeNet, maxTimeNet }) => {
+      output += `Distance: ${distance} miles\nClock Time Range: ${minTimeClock} - ${maxTimeClock}\nNet Race Time Range: ${minTimeNet} - ${maxTimeNet}\n\n`;
     });
 
     document.getElementById("output").textContent = output;
   }
-
-  // Initialize checkboxes
-  const distances = [...Array(26).keys()].map(i => i + 1).concat([13.1, 26.2]);
-  const mileBox = document.getElementById("mileCheckboxes");
-
-  distances.forEach(dist => {
-    const label = document.createElement("label");
-    const box = document.createElement("input");
-    box.type = "checkbox";
-    box.value = dist;
-    box.checked = [1, 13.1, 26.2].includes(dist);
-    label.appendChild(box);
-    label.append(` ${dist}`);
-    mileBox.appendChild(label);
-  });
 </script>
-</body>
-</html>
