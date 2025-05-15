@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mile Time Range Calculator</title>
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 700px; margin: auto; }
+    input, label, button { margin: 8px 0; display: block; }
+    .mile-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .output { background: #f5f5f5; padding: 12px; border-radius: 5px; margin-top: 15px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+
+  <h2>Mile Time Range Calculator</h2>
+
+  <label>Start Time (e.g. 9:10 AM):</label>
+  <input type="text" id="startTime" value="9:10 AM">
+
+  <label>Min Pace (MM:SS):</label>
+  <input type="text" id="paceMin" value="05:30">
+
+  <label>Max Pace (MM:SS):</label>
+  <input type="text" id="paceMax" value="06:10">
+
+  <label>Select Miles:</label>
+  <div class="mile-list" id="mileCheckboxes"></div>
+
+  <button onclick="handleCalculate()">Calculate</button>
+
+  <div class="output" id="output"></div>
+
+<script>
+  function parseTime(timeStr) {
+    const [min, sec] = timeStr.split(":").map(Number);
+    return (min * 60 + sec) * 1000;
+  }
+
+  function formatClockTime(date) {
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    minutes = minutes.toString().padStart(2, "0");
+    return `${hours}:${minutes} ${ampm}`;
+  }
+
+  function calculateTimeRanges(startTimeStr, paceMinStr, paceMaxStr, distances) {
+    const [timePart, ampm] = startTimeStr.trim().split(" ");
+    const [startHour, startMin] = timePart.split(":").map(Number);
+    const hour24 = (ampm.toUpperCase() === "PM" && startHour !== 12)
+                 ? startHour + 12
+                 : (ampm.toUpperCase() === "AM" && startHour === 12)
+                 ? 0 : startHour;
+
+    const startTime = new Date();
+    startTime.setHours(hour24, startMin, 0, 0);
+
+    const paceMin = parseTime(paceMinStr);
+    const paceMax = parseTime(paceMaxStr);
+
+    return distances.map(dist => {
+      const minTime = new Date(startTime.getTime() + paceMin * dist);
+      const maxTime = new Date(startTime.getTime() + paceMax * dist);
+      return {
+        distance: dist,
+        minTime: formatClockTime(minTime),
+        maxTime: formatClockTime(maxTime)
+      };
+    });
+  }
+
+  function handleCalculate() {
+    const startTime = document.getElementById("startTime").value;
+    const paceMin = document.getElementById("paceMin").value;
+    const paceMax = document.getElementById("paceMax").value;
+
+    const selectedDistances = Array.from(document.querySelectorAll(".mile-list input:checked"))
+      .map(cb => parseFloat(cb.value));
+
+    const results = calculateTimeRanges(startTime, paceMin, paceMax, selectedDistances);
+
+    let output = "";
+    results.forEach(({ distance, minTime, maxTime }) => {
+      output += `Distance: ${distance} miles\nTime Range: ${minTime} - ${maxTime}\n\n`;
+    });
+
+    document.getElementById("output").textContent = output;
+  }
+
+  // Initialize checkboxes
+  const distances = [...Array(26).keys()].map(i => i + 1).concat([13.1, 26.2]);
+  const mileBox = document.getElementById("mileCheckboxes");
+
+  distances.forEach(dist => {
+    const label = document.createElement("label");
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.value = dist;
+    box.checked = [1, 13.1, 26.2].includes(dist);
+    label.appendChild(box);
+    label.append(` ${dist}`);
+    mileBox.appendChild(label);
+  });
+</script>
+</body>
+</html>
