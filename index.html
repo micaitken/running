@@ -39,17 +39,25 @@
   function formatClockTime(date) {
     let hours = date.getHours();
     let minutes = date.getMinutes();
+    let seconds = date.getSeconds();
     const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
     minutes = minutes.toString().padStart(2, "0");
-    return `${hours}:${minutes} ${ampm}`;
+    seconds = seconds.toString().padStart(2, "0");
+    return `${hours}:${minutes}:${seconds} ${ampm}`;
   }
 
-  function formatDuration(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const min = Math.floor(totalSeconds / 60);
-    const sec = totalSeconds % 60;
-    return `${min}:${sec.toString().padStart(2, "0")}`;
+  function formatDurationHHMMSS(ms) {
+    let totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    totalSeconds %= 3600;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return [
+      hours.toString().padStart(2, "0"),
+      minutes.toString().padStart(2, "0"),
+      seconds.toString().padStart(2, "0"),
+    ].join(":");
   }
 
   function calculateTimeRanges(startTimeStr, paceMinStr, paceMaxStr, distances) {
@@ -73,8 +81,8 @@
         distance: dist,
         minTimeClock: formatClockTime(minTime),
         maxTimeClock: formatClockTime(maxTime),
-        minTimeNet: formatDuration(paceMin * dist),
-        maxTimeNet: formatDuration(paceMax * dist)
+        minTimeNet: formatDurationHHMMSS(paceMin * dist),
+        maxTimeNet: formatDurationHHMMSS(paceMax * dist)
       };
     });
   }
