@@ -26,11 +26,44 @@
   <label>Select Miles:</label>
   <div class="mile-list" id="mileCheckboxes"></div>
 
+  <label><input type="checkbox" id="nycMarathonMode" /> NYC Marathon Mode</label>
+
   <button onclick="handleCalculate()">Calculate</button>
 
   <div class="output" id="output"></div>
 
 <script>
+  const nycMileDescriptions = {
+    1: "Verrazzano Narrows Bridge, Staten Island",
+    2: "Verrazzano Narrows Bridge",
+    3: "Bay Ridge, Brooklyn",
+    4: "Sunset Park, Brooklyn",
+    5: "Sunset Park, Brooklyn",
+    6: "Sunset Park, Brooklyn",
+    7: "Park Slope, Brooklyn",
+    8: "Fort Greene, Brooklyn",
+    9: "Fort Greene, Brooklyn",
+    10: "Williamsburg, Brooklyn",
+    11: "Williamsburg, Brooklyn",
+    12: "Williamsburg, Brooklyn",
+    13: "Greenpoint, Brooklyn",
+    "13.1": "Pulaski Bridge",
+    14: "Long Island City, Queens",
+    15: "Queensboro Bridge, Queens",
+    16: "Queensboro Bridge, Manhattan",
+    17: "Upper East Side, Manhattan",
+    18: "Upper East Side, Manhattan",
+    19: "East Harlem, Manhattan",
+    20: "Mott Haven, The Bronx",
+    21: "135th Street Bridge",
+    22: "Harlem, Manhattan",
+    23: "Fifth Avenue, Manhattan",
+    24: "Central Park, Manhattan",
+    25: "Central Park, Manhattan",
+    26: "Central Park, Manhattan",
+    "26.2": "Central Park, Manhattan"
+  };
+
   function parseTime(timeStr) {
     const [min, sec] = timeStr.split(":").map(Number);
     return (min * 60 + sec) * 1000;
@@ -91,6 +124,7 @@
     const startTime = document.getElementById("startTime").value;
     const paceMin = document.getElementById("paceMin").value;
     const paceMax = document.getElementById("paceMax").value;
+    const nycMarathon = document.getElementById("nycMarathonMode").checked;
 
     const selectedDistances = Array.from(document.querySelectorAll(".mile-list input:checked"))
       .map(cb => parseFloat(cb.value));
@@ -99,7 +133,9 @@
 
     let output = "";
     results.forEach(({ distance, minTimeClock, maxTimeClock, minTimeNet, maxTimeNet }) => {
-      output += `Distance: ${distance} miles\nClock Time Range: ${minTimeClock} - ${maxTimeClock}\nNet Race Time Range: ${minTimeNet} - ${maxTimeNet}\n\n`;
+      const distLabel = distance % 1 === 0 ? distance : distance.toFixed(1);
+      const location = nycMarathon && nycMileDescriptions[distLabel] ? ` (${nycMileDescriptions[distLabel]})` : "";
+      output += `Distance: ${distLabel} miles${location}\nClock Time Range: ${minTimeClock} - ${maxTimeClock}\nNet Race Time Range: ${minTimeNet} - ${maxTimeNet}\n\n`;
     });
 
     document.getElementById("output").textContent = output;
